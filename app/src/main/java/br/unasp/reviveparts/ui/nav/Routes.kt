@@ -8,6 +8,8 @@ object Routes {
     const val CUSTOMER_HOME = "customer/home"
     const val CUSTOMER_AI = "customer/ai"
     const val CUSTOMER_ORDERS = "customer/orders"
+    const val CUSTOMER_FAVORITES = "customer/favorites"
+    const val CUSTOMER_PAYMENTS = "customer/payments"
     const val CUSTOMER_PROFILE = "customer/profile"
     fun partDetail(id: Long) = "customer/part/$id"
     const val PART_DETAIL = "customer/part/{id}"

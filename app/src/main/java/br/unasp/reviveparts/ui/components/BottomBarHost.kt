@@ -15,9 +15,8 @@ data class TabItem(val route: String, val label: String, val icon: ImageVector)
 
 private val customerTabs = listOf(
     TabItem(Routes.CUSTOMER_HOME, "Início", Icons.Default.Home),
-    TabItem(Routes.CUSTOMER_ORDERS, "Pedidos", Icons.Default.Receipt),
-    TabItem(Routes.CUSTOMER_AI, "+", Icons.Default.AddCircle),
-    TabItem(Routes.CUSTOMER_PROFILE, "Perfil", Icons.Default.Person)
+    TabItem(Routes.CUSTOMER_AI, "Buscar", Icons.Default.AddCircle),
+    TabItem(Routes.CUSTOMER_ORDERS, "Pedidos", Icons.Default.ShoppingBag)
 )
 private val ownerTabs = listOf(
     TabItem(Routes.OWNER_DASHBOARD, "Pedidos", Icons.Default.Receipt),

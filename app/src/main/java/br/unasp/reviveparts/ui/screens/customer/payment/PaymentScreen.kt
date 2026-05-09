@@ -1,43 +1,47 @@
 package br.unasp.reviveparts.ui.screens.customer.payment
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import br.unasp.reviveparts.app
-import br.unasp.reviveparts.data.payments.PixGenerator
+import br.unasp.reviveparts.data.db.entities.CardEntity
 import br.unasp.reviveparts.domain.model.OrderSource
 import br.unasp.reviveparts.ui.components.PrimaryTextField
-import br.unasp.reviveparts.ui.components.YellowButton
 import br.unasp.reviveparts.ui.nav.Routes
+import br.unasp.reviveparts.ui.theme.Black0
+import br.unasp.reviveparts.ui.theme.YellowPrimary
 
 @Composable
 fun PaymentScreen(nav: NavController, productId: Long, source: String) {
     val ctx = LocalContext.current
     val vm: PaymentViewModel = viewModel(key = "pay-$productId-$source", factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
         override fun <T : androidx.lifecycle.ViewModel> create(c: Class<T>): T = PaymentViewModel.create(ctx.app, productId, OrderSource.valueOf(source)) as T
     })
     val state by vm.state.collectAsState()
     val product = state.product ?: return
-    var tab by remember { mutableStateOf(0) }
-    var number by remember { mutableStateOf("") }
-    var holder by remember { mutableStateOf("") }
-    var expiry by remember { mutableStateOf("") }
-    var cvv by remember { mutableStateOf("") }
-    var save by remember { mutableStateOf(true) }
+
+    var selectedCardIdx by remember { mutableIntStateOf(0) }
+    var pixSelected by remember { mutableStateOf(false) }
+    var cardExpanded by remember { mutableStateOf(false) }
+    var addCardOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.createdOrderId) {
         val id = state.createdOrderId
@@ -47,68 +51,221 @@ fun PaymentScreen(nav: NavController, productId: Long, source: String) {
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        Text("Pagamento — R$ %.2f".format(product.priceCents / 100.0), style = MaterialTheme.typography.headlineMedium)
-        TabRow(selectedTabIndex = tab) {
-            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Cartão") })
-            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("PIX") })
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { nav.popBackStack() }) { Icon(Icons.Default.ArrowBack, null, tint = YellowPrimary) }
+            Text("Forma de pagamento", style = MaterialTheme.typography.headlineMedium)
         }
-        Spacer(Modifier.height(16.dp))
-        when (tab) {
-            0 -> {
-                if (state.cards.isNotEmpty()) {
-                    Text("Cartões salvos:")
-                    state.cards.forEach { c ->
-                        OutlinedButton(onClick = {
-                            vm.payCard("4111111111111111", c.holderName, c.expiry, c.brand, save = false)
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Text("${c.brand} •••• ${c.last4}  ${c.holderName}")
-                        }
-                        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(20.dp))
+
+        Text("Cartão de crédito", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+        if (state.cards.isEmpty()) {
+            EmptyCardCard()
+        } else {
+            val sel = state.cards.getOrNull(selectedCardIdx) ?: state.cards.first()
+            CreditCardVisual(
+                card = sel,
+                expanded = cardExpanded,
+                onToggle = { cardExpanded = !cardExpanded },
+                isSelected = !pixSelected,
+                onSelect = { pixSelected = false }
+            )
+            if (cardExpanded) {
+                Spacer(Modifier.height(8.dp))
+                state.cards.forEachIndexed { idx, c ->
+                    if (idx != selectedCardIdx) {
+                        OutlinedButton(
+                            onClick = { selectedCardIdx = idx; cardExpanded = false; pixSelected = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("${c.brand} •••• ${c.last4}") }
+                        Spacer(Modifier.height(6.dp))
                     }
-                    Divider(Modifier.padding(vertical = 12.dp))
-                    Text("Ou use um novo cartão:")
-                    Spacer(Modifier.height(8.dp))
                 }
-                PrimaryTextField(number, { number = it }, "Número do cartão", keyboardType = KeyboardType.Number)
-                Spacer(Modifier.height(8.dp))
-                PrimaryTextField(holder, { holder = it }, "Nome impresso")
-                Spacer(Modifier.height(8.dp))
-                Row {
-                    PrimaryTextField(expiry, { expiry = it }, "Validade MM/AA", Modifier.weight(1f))
-                    Spacer(Modifier.width(8.dp))
-                    PrimaryTextField(cvv, { cvv = it }, "CVV", Modifier.weight(1f), keyboardType = KeyboardType.Number)
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = save, onCheckedChange = { save = it }); Text("Salvar cartão")
-                }
-                if (state.error != null) Text(state.error!!, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(16.dp))
-                YellowButton(if (state.processing) "Processando..." else "Pagar", {
-                    vm.payCard(number, holder, expiry, brand = detectBrand(number), save = save)
-                }, Modifier.fillMaxWidth(), enabled = !state.processing)
+            } else {
+                Text(
+                    "Clique na seta para mostrar outros cartões",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                )
             }
-            1 -> {
-                LaunchedEffect(Unit) { if (state.pixCopyPaste == null) vm.preparePix() }
-                state.pixCopyPaste?.let { code ->
-                    val bmp = remember(code) { PixGenerator.qr(code) }
-                    Image(bmp.asImageBitmap(), null, Modifier.size(220.dp))
-                    Spacer(Modifier.height(8.dp))
-                    Text("PIX copia e cola:", style = MaterialTheme.typography.labelLarge)
-                    Text(code, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = {
-                        val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        cm.setPrimaryClip(ClipData.newPlainText("pix", code))
-                    }, modifier = Modifier.fillMaxWidth()) { Text("Copiar PIX") }
-                    Spacer(Modifier.height(16.dp))
-                    YellowButton("Já paguei", {
-                        state.createdOrderId?.let { nav.navigate(Routes.orderDetail(it)) { popUpTo(Routes.CUSTOMER_HOME) } }
-                    }, Modifier.fillMaxWidth())
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Text("Pix", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+        PixOptionRow(selected = pixSelected) { pixSelected = true }
+
+        Spacer(Modifier.height(16.dp))
+        TextButton(onClick = { addCardOpen = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Icon(Icons.Default.Add, null, tint = YellowPrimary)
+            Spacer(Modifier.width(4.dp))
+            Text("Adicionar cartão", color = YellowPrimary, style = MaterialTheme.typography.titleLarge)
+        }
+
+        if (state.error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(state.error!!, color = MaterialTheme.colorScheme.error)
+        }
+
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = {
+                if (pixSelected) vm.preparePix()
+                else state.cards.getOrNull(selectedCardIdx)?.let { c ->
+                    vm.payCard("4111111111111111", c.holderName, c.expiry, c.brand, save = false)
+                }
+            },
+            enabled = !state.processing && (pixSelected || state.cards.isNotEmpty()),
+            colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary, contentColor = Black0),
+            modifier = Modifier.fillMaxWidth().height(64.dp),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Text("Finalizar o pagamento", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Icon(Icons.Default.ArrowForward, null)
+            Spacer(Modifier.width(12.dp))
+            Text("R$ %.2f".format(product.priceCents / 100.0), style = MaterialTheme.typography.titleLarge)
+        }
+
+        if (state.pixCopyPaste != null) {
+            Spacer(Modifier.height(12.dp))
+            Text("PIX gerado:", style = MaterialTheme.typography.labelLarge)
+            Text(state.pixCopyPaste!!, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = { state.createdOrderId?.let { nav.navigate(Routes.orderDetail(it)) { popUpTo(Routes.CUSTOMER_HOME) } } },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Já paguei") }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+
+    if (addCardOpen) {
+        AddCardDialog(
+            onCancel = { addCardOpen = false },
+            onConfirm = { number, holder, expiry, brand ->
+                addCardOpen = false
+                vm.payCard(number, holder, expiry, brand, save = true)
+            }
+        )
+    }
+}
+
+@Composable
+private fun CreditCardVisual(card: CardEntity, expanded: Boolean, onToggle: () -> Unit, isSelected: Boolean, onSelect: () -> Unit) {
+    val border = if (isSelected) 3.dp else 0.dp
+    Card(
+        onClick = onSelect,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1F1F1F)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(Color(0xFF2A2A2A), Color(0xFF111111))))
+                .padding(20.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(card.brand, color = YellowPrimary, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                    Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFFEB001B)))
+                    Spacer(Modifier.width(-12.dp))
+                    Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFFF79E1B).copy(alpha = 0.85f)))
+                }
+                Spacer(Modifier.height(28.dp))
+                Text("••••  ••••  ••••  ${card.last4}", color = Color.White, style = MaterialTheme.typography.headlineMedium)
+                Spacer(Modifier.height(20.dp))
+                Row {
+                    Column(Modifier.weight(1f)) {
+                        Text("TITULAR", color = Color(0xFF999999), style = MaterialTheme.typography.labelSmall)
+                        Text(card.holderName.uppercase(), color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Column {
+                        Text("VALIDADE", color = Color(0xFF999999), style = MaterialTheme.typography.labelSmall)
+                        Text(card.expiry, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    IconButton(onClick = onToggle) {
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            null,
+                            tint = YellowPrimary
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun EmptyCardCard() {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.CreditCard, null, tint = YellowPrimary, modifier = Modifier.size(40.dp))
+            Spacer(Modifier.height(8.dp))
+            Text("Nenhum cartão salvo", style = MaterialTheme.typography.titleLarge)
+            Text("Toque em + Adicionar cartão", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun PixOptionRow(selected: Boolean, onSelect: () -> Unit) {
+    val borderColor = if (selected) YellowPrimary else Color.Transparent
+    Card(
+        onClick = onSelect,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 0.dp, borderColor),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(YellowPrimary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) { Text("⬥", color = YellowPrimary) }
+            Spacer(Modifier.width(12.dp))
+            Text("PIX", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            if (selected) Icon(Icons.Default.CheckCircle, null, tint = YellowPrimary)
+        }
+    }
+}
+
+@Composable
+private fun AddCardDialog(onCancel: () -> Unit, onConfirm: (number: String, holder: String, expiry: String, brand: String) -> Unit) {
+    var number by remember { mutableStateOf("") }
+    var holder by remember { mutableStateOf("") }
+    var expiry by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Adicionar cartão") },
+        text = {
+            Column {
+                PrimaryTextField(number, { number = it }, "Número", keyboardType = KeyboardType.Number)
+                Spacer(Modifier.height(8.dp))
+                PrimaryTextField(holder, { holder = it }, "Nome impresso")
+                Spacer(Modifier.height(8.dp))
+                PrimaryTextField(expiry, { expiry = it }, "Validade MM/AA")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(number, holder, expiry, detectBrand(number))
+            }) { Text("Salvar e pagar") }
+        },
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancelar") } }
+    )
 }
 
 private fun detectBrand(num: String): String {

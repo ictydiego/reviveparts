@@ -56,6 +56,8 @@ fun AppNavHost() {
             composable(Routes.CUSTOMER_HOME) { HomeScreen(nav) }
             composable(Routes.CUSTOMER_AI) { AiSearchScreen(nav) }
             composable(Routes.CUSTOMER_ORDERS) { OrdersScreen(nav) }
+            composable(Routes.CUSTOMER_FAVORITES) { br.unasp.reviveparts.ui.screens.customer.favorites.FavoritesScreen(nav) }
+            composable(Routes.CUSTOMER_PAYMENTS) { br.unasp.reviveparts.ui.screens.customer.payments.PaymentsScreen(nav) }
             composable(Routes.CUSTOMER_PROFILE) { ProfileScreen(nav) }
             composable(Routes.PART_DETAIL, listOf(navArgument("id") { type = NavType.LongType })) {
                 PartDetailScreen(nav, it.arguments!!.getLong("id"))
