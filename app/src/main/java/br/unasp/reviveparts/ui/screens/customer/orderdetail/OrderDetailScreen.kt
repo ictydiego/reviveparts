@@ -1,5 +1,6 @@
 package br.unasp.reviveparts.ui.screens.customer.orderdetail
 
+import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -36,10 +37,13 @@ import br.unasp.reviveparts.ui.screens.customer.formatOrderId
 import br.unasp.reviveparts.ui.screens.customer.productImage
 import br.unasp.reviveparts.ui.theme.Black0
 import br.unasp.reviveparts.ui.theme.YellowPrimary
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun OrderDetailScreen(nav: NavController, id: Long) {
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     val vm: OrderDetailViewModel = viewModel(key = "od-$id", factory = object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : androidx.lifecycle.ViewModel> create(c: Class<T>): T = OrderDetailViewModel.create(ctx.app, id) as T
@@ -51,6 +55,7 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
     val display = order.status.display()
     var rating by remember { mutableIntStateOf(0) }
     var liveOpen by remember { mutableStateOf(false) }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -132,7 +137,10 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
                     Spacer(Modifier.height(12.dp))
                     Row {
                         repeat(5) { i ->
-                            IconButton(onClick = { rating = i + 1 }) {
+                            IconButton(
+                                onClick = { if (!isSubmitting) rating = i + 1 },
+                                enabled = !isSubmitting
+                            ) {
                                 Icon(
                                     if (i < rating) Icons.Default.Star else Icons.Default.StarBorder,
                                     null,
@@ -144,11 +152,25 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
                     }
                     Spacer(Modifier.height(8.dp))
                     Button(
-                        onClick = { /* mock submit */ },
-                        enabled = rating > 0,
+                        onClick = {
+                            isSubmitting = true
+                            scope.launch {
+                                delay(1500)
+                                isSubmitting = false
+                                Toast.makeText(ctx, "Avaliação enviada com sucesso!", Toast.LENGTH_SHORT).show()
+                                nav.popBackStack()
+                            }
+                        },
+                        enabled = rating > 0 && !isSubmitting,
                         colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary, contentColor = Black0),
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Enviar a avaliação") }
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) {
+                        if (isSubmitting) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Black0, strokeWidth = 2.dp)
+                        } else {
+                            Text("Enviar a avaliação")
+                        }
+                    }
                 }
             }
         }

@@ -9,6 +9,7 @@ import br.unasp.reviveparts.data.repo.OrderRepository
 import br.unasp.reviveparts.data.repo.ProductRepository
 import br.unasp.reviveparts.domain.model.OrderStatus
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class OwnerDashboardViewModel(
@@ -22,7 +23,9 @@ class OwnerDashboardViewModel(
 
     init {
         viewModelScope.launch {
-            selected.collect { s -> orders.observeByStatus(s).collect { list.value = it } }
+            selected.collectLatest { s ->
+                orders.observeByStatus(s).collect { list.value = it }
+            }
         }
         viewModelScope.launch { orders.observeAll().collect { all.value = it } }
         viewModelScope.launch {

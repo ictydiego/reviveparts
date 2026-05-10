@@ -1,8 +1,10 @@
 package br.unasp.reviveparts.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import br.unasp.reviveparts.ui.theme.Black0
@@ -80,16 +83,20 @@ private fun DrawerSectionLabel(text: String) {
 
 @Composable
 private fun DrawerRow(label: String, icon: ImageVector, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp)
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = Color.Transparent,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Icon(icon, null, tint = YellowPrimary)
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-        Spacer(Modifier.weight(1f))
-        TextButton(onClick = onClick) { Text("Abrir") }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(vertical = 12.dp, horizontal = 8.dp)
+        ) {
+            Icon(icon, null, tint = YellowPrimary)
+            Spacer(Modifier.width(16.dp))
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+        }
     }
 }
