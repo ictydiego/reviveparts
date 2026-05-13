@@ -39,6 +39,8 @@ fun productImage(name: String): Int {
         "porta" in n || "puxador" in n -> R.drawable.porta_copos
         "luz" in n || "teto" in n -> R.drawable.luz_de_teto
         "soleira" in n -> R.drawable.soleira_opala
+        "subaru" in n || "radiador" in n || "washer" in n -> R.drawable.tamparadiador
+        "retrovisor" in n || "mirror" in n || "espelho" in n -> R.drawable.retrovisor_fiat
         else -> R.drawable.manivela_vidro
     }
 }

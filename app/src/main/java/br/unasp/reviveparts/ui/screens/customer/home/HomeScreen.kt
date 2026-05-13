@@ -44,14 +44,31 @@ fun HomeScreen(nav: NavController) {
     })
     val products by vm.products.collectAsState(initial = emptyList())
     val user by vm.user.collectAsState()
+    val hasOrderUpdate by vm.hasOrderUpdate.collectAsState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var search by remember { mutableStateOf("") }
+    var selectedBrand by remember { mutableStateOf<String?>(null) }
+    var filterOpen by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<ProductEntity?>(null) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val productSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val filtered = remember(products, search) {
-        if (search.isBlank()) products else products.filter { it.name.contains(search, ignoreCase = true) }
+    val brands = remember(products) {
+        products.map { it.carBrand.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
+    val filtered = remember(products, search, selectedBrand) {
+        products.filter { p ->
+            val matchesSearch = search.isBlank() ||
+                p.name.contains(search, ignoreCase = true) ||
+                p.description.contains(search, ignoreCase = true) ||
+                p.carBrand.contains(search, ignoreCase = true)
+            val matchesBrand = selectedBrand == null || p.carBrand.equals(selectedBrand, ignoreCase = true)
+            matchesSearch && matchesBrand
+        }
     }
     val topSellers = filtered.take(6)
 
@@ -80,11 +97,20 @@ fun HomeScreen(nav: NavController) {
             Spacer(Modifier.height(12.dp))
             TopHeader(
                 userName = user?.name?.substringBefore(" ") ?: "",
-                onBell = { },
+                hasNotification = hasOrderUpdate,
+                onBell = {
+                    vm.clearOrderUpdate()
+                    nav.navigate(Routes.CUSTOMER_ORDERS)
+                },
                 onAvatar = { scope.launch { drawerState.open() } }
             )
             Spacer(Modifier.height(16.dp))
-            SearchRow(search, { search = it }, { })
+            SearchRow(
+                value = search,
+                onValueChange = { search = it },
+                onFilter = { filterOpen = true },
+                hasActiveFilter = selectedBrand != null
+            )
             Spacer(Modifier.height(20.dp))
             SectionHeader("Mais vendidos")
             Spacer(Modifier.height(8.dp))
@@ -111,12 +137,12 @@ fun HomeScreen(nav: NavController) {
         if (selected != null) {
             ModalBottomSheet(
                 onDismissRequest = { selected = null },
-                sheetState = sheetState,
+                sheetState = productSheetState,
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 ProductSheetContent(
                     p = selected!!,
-                    onBack = { scope.launch { sheetState.hide() }.invokeOnCompletion { selected = null } },
+                    onBack = { scope.launch { productSheetState.hide() }.invokeOnCompletion { selected = null } },
                     search = search,
                     onSearchChange = { search = it },
                     onCart = {
@@ -132,18 +158,39 @@ fun HomeScreen(nav: NavController) {
                 )
             }
         }
+
+        if (filterOpen) {
+            ModalBottomSheet(
+                onDismissRequest = { filterOpen = false },
+                sheetState = filterSheetState,
+                containerColor = MaterialTheme.colorScheme.background
+            ) {
+                FilterSheetContent(
+                    brands = brands,
+                    selectedBrand = selectedBrand,
+                    onSelect = {
+                        selectedBrand = it
+                        scope.launch { filterSheetState.hide() }.invokeOnCompletion { filterOpen = false }
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun TopHeader(userName: String, onBell: () -> Unit, onAvatar: () -> Unit) {
+private fun TopHeader(userName: String, hasNotification: Boolean, onBell: () -> Unit, onAvatar: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text("Bem-vindo!", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(userName.ifBlank { "Cliente" }, style = MaterialTheme.typography.headlineMedium, color = YellowPrimary)
         }
         IconButton(onClick = onBell) {
-            Icon(Icons.Default.Notifications, "notificações", tint = YellowPrimary)
+            BadgedBox(
+                badge = { if (hasNotification) Badge(containerColor = MaterialTheme.colorScheme.error) }
+            ) {
+                Icon(Icons.Default.Notifications, "notificações", tint = YellowPrimary)
+            }
         }
         Spacer(Modifier.width(4.dp))
         Surface(
@@ -164,7 +211,12 @@ private fun TopHeader(userName: String, onBell: () -> Unit, onAvatar: () -> Unit
 }
 
 @Composable
-private fun SearchRow(value: String, onValueChange: (String) -> Unit, onFilter: () -> Unit) {
+private fun SearchRow(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onFilter: () -> Unit,
+    hasActiveFilter: Boolean = false
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = value,
@@ -183,17 +235,72 @@ private fun SearchRow(value: String, onValueChange: (String) -> Unit, onFilter: 
         FilledIconButton(
             onClick = onFilter,
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = YellowPrimary,
-                contentColor = Black0
+                containerColor = if (hasActiveFilter) Black0 else YellowPrimary,
+                contentColor = if (hasActiveFilter) YellowPrimary else Black0
             ),
             modifier = Modifier.size(52.dp)
-        ) { Icon(Icons.Default.Tune, "filtro") }
+        ) {
+            BadgedBox(
+                badge = { if (hasActiveFilter) Badge(containerColor = MaterialTheme.colorScheme.error) }
+            ) {
+                Icon(Icons.Default.Tune, "filtro")
+            }
+        }
     }
 }
 
 @Composable
 private fun SectionHeader(text: String) {
     Text(text, style = MaterialTheme.typography.titleLarge)
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FilterSheetContent(
+    brands: List<String>,
+    selectedBrand: String?,
+    onSelect: (String?) -> Unit
+) {
+    Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
+        Text("Filtros", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Marca do carro",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = selectedBrand == null,
+                onClick = { onSelect(null) },
+                label = { Text("Todas") },
+                leadingIcon = if (selectedBrand == null) {
+                    { Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp)) }
+                } else null
+            )
+            brands.forEach { brand ->
+                FilterChip(
+                    selected = selectedBrand == brand,
+                    onClick = { onSelect(brand) },
+                    label = { Text(brand) },
+                    leadingIcon = if (selectedBrand == brand) {
+                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp)) }
+                    } else null
+                )
+            }
+        }
+        if (brands.isEmpty()) {
+            Text(
+                "Nenhuma marca cadastrada ainda.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+        }
+    }
 }
 
 @Composable
@@ -230,6 +337,14 @@ private fun TallProductCard(p: ProductEntity, onArrow: () -> Unit, onClick: () -
                 Column(Modifier.weight(1f)) {
                     Text(p.name.uppercase(), style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(4.dp))
+                    if (p.carBrand.isNotBlank()) {
+                        Text(
+                            p.carBrand,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(4.dp))
+                    }
                     Text(
                         "R$ %.2f".format(p.priceCents / 100.0),
                         color = YellowPrimary,
@@ -295,7 +410,7 @@ private fun ProductSheetContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("Compatível: VW Fusca, Kombi", style = MaterialTheme.typography.labelLarge, color = Color(0xFF555555))
+                Text("Marca: ${p.carBrand.ifBlank { "Universal" }}", style = MaterialTheme.typography.labelLarge, color = Color(0xFF555555))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(p.name, style = MaterialTheme.typography.headlineMedium, color = Black0, modifier = Modifier.weight(1f))
                     FilledIconButton(

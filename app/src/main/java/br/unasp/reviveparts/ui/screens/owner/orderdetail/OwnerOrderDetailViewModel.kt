@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.unasp.reviveparts.RevivePartsApp
 import br.unasp.reviveparts.data.db.entities.*
 import br.unasp.reviveparts.data.repo.*
+import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -17,18 +18,41 @@ class OwnerOrderDetailViewModel(
     val order = MutableStateFlow<OrderEntity?>(null)
     val product = MutableStateFlow<ProductEntity?>(null)
     val customer = MutableStateFlow<UserEntity?>(null)
+    val error = MutableStateFlow<String?>(null)
 
     init { viewModelScope.launch {
         orders.observeById(orderId).collect { o ->
             order.value = o
             if (o != null) {
                 if (product.value == null) product.value = products.findById(o.productId)
-                if (customer.value == null) customer.value = users.findById(o.userId)
+                if (customer.value == null) {
+                    customer.value = users.findById(o.userId) ?: UserEntity(
+                        id = o.userId,
+                        name = o.customerName,
+                        email = o.customerEmail,
+                        password = "",
+                        phone = o.customerPhone,
+                        address = o.customerAddress,
+                        role = br.unasp.reviveparts.domain.model.Role.CUSTOMER,
+                        firebaseUid = o.userUid
+                    )
+                }
             }
         }
     } }
 
-    fun advance() = viewModelScope.launch { orders.advance(orderId) }
+    fun advance() = viewModelScope.launch {
+        error.value = null
+        try {
+            orders.advance(orderId)
+        } catch (t: Throwable) {
+            error.value = if (t is FirebaseFirestoreException && t.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                "Permissao negada no Firestore. Publique as regras antes de alterar status."
+            } else {
+                t.message ?: "Nao foi possivel alterar o status"
+            }
+        }
+    }
 
     companion object {
         fun create(app: RevivePartsApp, id: Long) = OwnerOrderDetailViewModel(app.orderRepo, app.productRepo, app.userRepo, id)

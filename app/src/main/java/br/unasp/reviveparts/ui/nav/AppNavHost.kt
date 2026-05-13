@@ -1,8 +1,12 @@
 package br.unasp.reviveparts.ui.nav
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -26,6 +30,7 @@ import br.unasp.reviveparts.ui.screens.owner.productedit.ProductEditScreen
 import br.unasp.reviveparts.ui.screens.owner.products.ProductsScreen
 import br.unasp.reviveparts.ui.screens.owner.profile.OwnerProfileScreen
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun AppNavHost() {
@@ -33,14 +38,24 @@ fun AppNavHost() {
     val ctx = LocalContext.current
     val sessionFlow = ctx.app.sessionRepo.session
     val session by sessionFlow.collectAsState(initial = null)
-    val sessionLoaded = remember { mutableStateOf(false) }
-    LaunchedEffect(session) { sessionLoaded.value = true }
+    var sessionLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        sessionFlow.first()
+        sessionLoaded = true
+    }
+
+    if (!sessionLoaded) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     val role = session?.role
     val showBar = role != null && nav.currentBackStackEntryAsState().value?.destination?.route in withBarRoutes
 
     Scaffold(
-        bottomBar = { if (showBar && role != null) AppBottomBar(nav, role) }
+        bottomBar = { role?.let { if (showBar) AppBottomBar(nav, it) } }
     ) { pad ->
         NavHost(
             navController = nav,

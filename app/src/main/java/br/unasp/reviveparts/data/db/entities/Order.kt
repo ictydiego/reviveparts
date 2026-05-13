@@ -15,5 +15,10 @@ data class OrderEntity(
     val paymentType: PaymentType,
     val totalCents: Long,
     val source: OrderSource,
-    val createdAt: Long
+    val createdAt: Long,
+    val userUid: String = "",
+    val customerName: String = "",
+    val customerEmail: String = "",
+    val customerPhone: String = "",
+    val customerAddress: String = ""
 )

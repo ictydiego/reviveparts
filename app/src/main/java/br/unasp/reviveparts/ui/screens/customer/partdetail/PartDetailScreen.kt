@@ -106,7 +106,7 @@ fun PartDetailScreen(nav: NavController, id: Long) {
             Spacer(Modifier.height(20.dp))
             Text("Compatibilidade", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(8.dp))
-            CompatibilityList()
+            CompatibilityList(product)
             Spacer(Modifier.height(120.dp))
         }
 
@@ -177,8 +177,13 @@ private fun SpecItem(label: String, value: String) {
 }
 
 @Composable
-private fun CompatibilityList() {
-    val items = listOf("VW Fusca 1965-1996", "VW Kombi 1957-2013", "VW Brasília 1973-1982")
+private fun CompatibilityList(product: ProductEntity) {
+    val items = when (product.carBrand.lowercase()) {
+        "subaru" -> listOf("Subaru WRX")
+        "fiat" -> listOf("Fiat")
+        "volkswagen" -> listOf("VW Fusca 1965-1996", "VW Kombi 1957-2013", "VW Brasilia 1973-1982")
+        else -> listOf(product.carBrand.ifBlank { "Universal" })
+    }
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),

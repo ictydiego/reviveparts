@@ -13,5 +13,6 @@ data class UserEntity(
     val phone: String = "",
     val cpf: String = "",
     val address: String = "",
-    val role: Role
+    val role: Role,
+    val firebaseUid: String = ""
 )

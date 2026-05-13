@@ -9,6 +9,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     suspend fun findByEmail(email: String): UserEntity?
 
+    @Query("SELECT * FROM users WHERE firebaseUid = :uid LIMIT 1")
+    suspend fun findByFirebaseUid(uid: String): UserEntity?
+
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun findById(id: Long): UserEntity?
 

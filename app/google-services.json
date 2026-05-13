@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "173971447840",
+    "project_id": "smarthidro-f6190",
+    "storage_bucket": "smarthidro-f6190.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:173971447840:android:6d985347b0f11b5fc41c45",
+        "android_client_info": {
+          "package_name": "br.unasp.reviveparts"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQMWRQCTdVIt4Lg15nubzXsadQGzHPSoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

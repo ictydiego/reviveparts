@@ -85,9 +85,6 @@ private fun InputView(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { onImage(it) }
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) {
-        onImage(Uri.parse("mock://camera"))
-    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Row {
@@ -177,7 +174,7 @@ private fun InputView(
                 TextButton(onClick = { pickerOpen = false; gallery.launch("image/*") }) { Text("Galeria") }
             },
             dismissButton = {
-                TextButton(onClick = { pickerOpen = false; camera.launch(null) }) { Text("Câmera") }
+                TextButton(onClick = { pickerOpen = false; onImage(Uri.parse("mock://camera")) }) { Text("Câmera") }
             }
         )
     }

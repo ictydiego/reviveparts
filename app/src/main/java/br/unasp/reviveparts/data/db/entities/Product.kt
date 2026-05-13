@@ -13,5 +13,6 @@ data class ProductEntity(
     val priceCents: Long,
     val prototypeHours: Int,
     val stockQty: Int,
-    val isReady: Boolean
+    val isReady: Boolean,
+    val carBrand: String = ""
 )

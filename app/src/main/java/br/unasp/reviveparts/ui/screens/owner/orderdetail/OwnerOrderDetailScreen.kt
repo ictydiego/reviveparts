@@ -39,6 +39,7 @@ fun OwnerOrderDetailScreen(nav: NavController, id: Long) {
     val o by vm.order.collectAsState()
     val p by vm.product.collectAsState()
     val u by vm.customer.collectAsState()
+    val error by vm.error.collectAsState()
     val order = o ?: return
     val display = order.status.display()
     val isDone = order.status == OrderStatus.DELIVERED
@@ -131,6 +132,10 @@ fun OwnerOrderDetailScreen(nav: NavController, id: Long) {
             Text("Pipeline", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(8.dp))
             PipelineList(order.status)
+            if (error != null) {
+                Spacer(Modifier.height(12.dp))
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            }
             Spacer(Modifier.height(120.dp))
         }
 

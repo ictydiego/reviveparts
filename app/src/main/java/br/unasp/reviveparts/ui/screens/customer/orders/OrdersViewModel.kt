@@ -22,7 +22,7 @@ class OrdersViewModel(
     init {
         viewModelScope.launch {
             val s = session.current() ?: return@launch
-            orders.observeByUser(s.userId).collect { items.value = it }
+            orders.observeByUser(s.userId, s.firebaseUid).collect { items.value = it }
         }
         viewModelScope.launch {
             productsRepo.observeAll().collect { list -> products.value = list.associateBy { it.id } }

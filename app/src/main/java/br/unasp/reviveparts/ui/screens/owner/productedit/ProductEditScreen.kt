@@ -79,6 +79,8 @@ fun ProductEditScreen(nav: NavController, id: Long?) {
                 PrimaryTextField(p.name, { v -> vm.update { it.copy(name = v) } }, "Nome")
                 Spacer(Modifier.height(8.dp))
                 PrimaryTextField(p.description, { v -> vm.update { it.copy(description = v) } }, "Descrição")
+                Spacer(Modifier.height(8.dp))
+                PrimaryTextField(p.carBrand, { v -> vm.update { it.copy(carBrand = v) } }, "Marca do carro")
             }
 
             Spacer(Modifier.height(16.dp))

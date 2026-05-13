@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ReviveParts | Pecas automotivas em 3D</title>
+    <meta
+      name="description"
+      content="ReviveParts conecta motoristas a pecas automotivas raras, modelos 3D e acompanhamento de pedidos em tempo real."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="ReviveParts">
+        <img src="assets/logo.png" alt="" />
+        <span>ReviveParts</span>
+      </a>
+      <nav aria-label="Principal">
+        <a href="#catalogo">Catalogo</a>
+        <a href="#status">Status</a>
+        <a href="#hosting">Firebase</a>
+      </nav>
+      <a class="store-link" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
+        Play Store
+      </a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-media" aria-hidden="true">
+          <img class="part part-main" src="assets/manivela_vidro.png" alt="" />
+          <img class="part part-subaru" src="assets/tamparadiador.png" alt="" />
+          <img class="part part-mirror" src="assets/retrovisor_fiat.png" alt="" />
+        </div>
+        <div class="hero-copy">
+          <p class="eyebrow">Catalogo 3D para reposicao automotiva</p>
+          <h1 id="hero-title">ReviveParts</h1>
+          <p>
+            Encontre, visualize e compre pecas raras com modelos 3D locais,
+            filtros por marca e pedidos acompanhados em tempo real.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
+              Baixar na Play Store
+            </a>
+            <a class="secondary-action" href="#catalogo">Ver recursos</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="catalogo" class="section product-band">
+        <div class="section-heading">
+          <p class="eyebrow">Busca por marca</p>
+          <h2>Do Subaru WRX ao Fiat antigo, o catalogo fica simples de navegar.</h2>
+        </div>
+        <div class="product-grid">
+          <article class="product-card">
+            <img src="assets/tamparadiador.png" alt="Tampa de radiador Subaru WRX" />
+            <div>
+              <span>Subaru</span>
+              <h3>WRX washer cap</h3>
+              <p>Tampa do radiador pronta para impressao 3D.</p>
+            </div>
+          </article>
+          <article class="product-card">
+            <img src="assets/retrovisor_fiat.png" alt="Retrovisor Fiat" />
+            <div>
+              <span>Fiat</span>
+              <h3>Mirror green</h3>
+              <p>Retrovisor esquerdo com modelo STL local.</p>
+            </div>
+          </article>
+          <article class="product-card">
+            <img src="assets/manivela_vidro.png" alt="Manivela de vidro Volkswagen" />
+            <div>
+              <span>Volkswagen</span>
+              <h3>Manivela do vidro</h3>
+              <p>Modelo 3D usado tambem no fluxo mockado de IA.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="status" class="section status-band">
+        <div class="phone-shell" aria-label="Previa da tela de pedidos">
+          <div class="phone-top"></div>
+          <div class="phone-screen">
+            <div class="screen-row">
+              <strong>Pedido BR-200021</strong>
+              <span class="pill">Imprimindo</span>
+            </div>
+            <div class="timeline">
+              <span class="done"></span>
+              <span class="active"></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="screen-card">
+              <small>Atualizacao em tempo real</small>
+              <p>O sino da Home avisa quando o status muda.</p>
+            </div>
+          </div>
+        </div>
+        <div class="status-copy">
+          <p class="eyebrow">Pedidos na nuvem</p>
+          <h2>Status sincronizado para cliente e dono.</h2>
+          <p>
+            O fluxo continua igual: pagamento, pedido criado e acompanhamento.
+            A diferenca e que o status passa a mudar no Firestore e aparece
+            sem depender de dados locais.
+          </p>
+          <ul>
+            <li>Pedido feito</li>
+            <li>Em analise</li>
+            <li>Imprimindo</li>
+            <li>Enviado</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="hosting" class="section hosting-band">
+        <div>
+          <p class="eyebrow">Pronto para Firebase Hosting</p>
+          <h2>Landing page leve, estatica e alinhada ao app.</h2>
+          <p>
+            Publicacao direta pelo Firebase Hosting, com assets locais e link
+            para a Play Store.
+          </p>
+        </div>
+        <a class="primary-action" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
+          Abrir Play Store
+        </a>
+      </section>
+    </main>
+  </body>
+</html>

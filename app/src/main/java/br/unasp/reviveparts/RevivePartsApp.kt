@@ -7,6 +7,8 @@ import br.unasp.reviveparts.data.db.Seed
 import br.unasp.reviveparts.data.repo.*
 import br.unasp.reviveparts.data.ai.FakeAiService
 import br.unasp.reviveparts.data.payments.PaymentSimulator
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,9 +23,12 @@ class RevivePartsApp : Application() {
             .build()
     }
 
-    val userRepo by lazy { UserRepository(db.userDao()) }
+    val firebaseAuth by lazy { FirebaseAuth.getInstance() }
+    val firestore by lazy { FirebaseFirestore.getInstance() }
+
+    val userRepo by lazy { UserRepository(db.userDao(), firebaseAuth, firestore) }
     val productRepo by lazy { ProductRepository(db.productDao()) }
-    val orderRepo by lazy { OrderRepository(db.orderDao(), db.orderEventDao()) }
+    val orderRepo by lazy { OrderRepository(db.orderDao(), db.orderEventDao(), firestore, firebaseAuth) }
     val cardRepo by lazy { CardRepository(db.cardDao()) }
     val sessionRepo by lazy { SessionRepository(this) }
     val aiService by lazy { FakeAiService() }

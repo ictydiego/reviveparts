@@ -18,18 +18,29 @@ class AuthViewModel(
     data class UiState(
         val loading: Boolean = false,
         val error: String? = null,
-        val loggedInRole: Role? = null
+        val loggedInRole: Role? = null,
+        val biometricReady: Boolean = false
     )
 
     private val _state = MutableStateFlow(UiState())
     val state = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            session.biometricSession.collect { saved ->
+                _state.value = _state.value.copy(
+                    biometricReady = saved != null && users.hasActiveFirebaseUser(saved.firebaseUid)
+                )
+            }
+        }
+    }
 
     fun login(email: String, password: String) {
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             val r = users.login(email, password)
             r.onSuccess {
-                session.login(it.id, it.role)
+                session.login(it.id, it.role, it.firebaseUid)
                 _state.value = UiState(loggedInRole = it.role)
             }.onFailure {
                 _state.value = UiState(error = it.message)
@@ -41,10 +52,23 @@ class AuthViewModel(
         _state.value = _state.value.copy(loading = true, error = null)
         viewModelScope.launch {
             users.register(name, email, password, phone, cpf, address).onSuccess {
-                session.login(it.id, it.role)
+                session.login(it.id, it.role, it.firebaseUid)
                 _state.value = UiState(loggedInRole = it.role)
             }.onFailure {
                 _state.value = UiState(error = it.message)
+            }
+        }
+    }
+
+    fun loginWithBiometric() {
+        _state.value = _state.value.copy(loading = true, error = null)
+        viewModelScope.launch {
+            val restored = session.restoreBiometricSession()
+            if (restored == null || !users.hasActiveFirebaseUser(restored.firebaseUid)) {
+                session.logout()
+                _state.value = UiState(error = "Entre com e-mail e senha para ativar a biometria novamente")
+            } else {
+                _state.value = UiState(loggedInRole = restored.role, biometricReady = true)
             }
         }
     }

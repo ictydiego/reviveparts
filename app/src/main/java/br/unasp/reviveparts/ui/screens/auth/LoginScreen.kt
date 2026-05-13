@@ -2,6 +2,8 @@ package br.unasp.reviveparts.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import br.unasp.reviveparts.domain.model.Role
 import br.unasp.reviveparts.ui.components.PrimaryTextField
 import br.unasp.reviveparts.ui.components.YellowButton
 import br.unasp.reviveparts.ui.nav.Routes
+import br.unasp.reviveparts.ui.theme.YellowPrimary
 
 @Composable
 fun LoginScreen(nav: NavController) {
@@ -30,6 +33,8 @@ fun LoginScreen(nav: NavController) {
     val state by vm.state.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val activity = remember(ctx) { ctx.findFragmentActivity() }
+    val hasBiometric = remember(ctx) { BiometricLogin.canAuthenticate(ctx) }
 
     LaunchedEffect(state.loggedInRole) {
         when (state.loggedInRole) {
@@ -65,6 +70,24 @@ fun LoginScreen(nav: NavController) {
             }
             Spacer(Modifier.height(24.dp))
             YellowButton("Entrar", { vm.login(email, password) }, Modifier.fillMaxWidth(), enabled = !state.loading)
+            if (hasBiometric && state.biometricReady && activity != null) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        BiometricLogin.authenticate(
+                            activity = activity,
+                            onSuccess = { vm.loginWithBiometric() },
+                            onError = { }
+                        )
+                    },
+                    enabled = !state.loading,
+                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                ) {
+                    Icon(Icons.Default.Fingerprint, contentDescription = null, tint = YellowPrimary)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Entrar com biometria")
+                }
+            }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = { nav.navigate(Routes.REGISTER) }) { Text("Criar conta") }
         }
