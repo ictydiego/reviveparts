@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,14 +17,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import br.unasp.reviveparts.app
 import br.unasp.reviveparts.data.db.entities.CardEntity
 import br.unasp.reviveparts.domain.model.OrderSource
-import br.unasp.reviveparts.ui.components.PrimaryTextField
 import br.unasp.reviveparts.ui.nav.Routes
 import br.unasp.reviveparts.ui.theme.Black0
 import br.unasp.reviveparts.ui.theme.YellowPrimary
@@ -41,7 +45,7 @@ fun PaymentScreen(nav: NavController, productId: Long, source: String) {
     var selectedCardIdx by remember { mutableIntStateOf(0) }
     var pixSelected by remember { mutableStateOf(false) }
     var cardExpanded by remember { mutableStateOf(false) }
-    var addCardOpen by remember { mutableStateOf(false) }
+    var showAddCardForm by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.createdOrderId) {
         val id = state.createdOrderId
@@ -97,10 +101,24 @@ fun PaymentScreen(nav: NavController, productId: Long, source: String) {
         PixOptionRow(selected = pixSelected) { pixSelected = true }
 
         Spacer(Modifier.height(16.dp))
-        TextButton(onClick = { addCardOpen = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Icon(Icons.Default.Add, null, tint = YellowPrimary)
-            Spacer(Modifier.width(4.dp))
-            Text("Adicionar cartão", color = YellowPrimary, style = MaterialTheme.typography.titleLarge)
+        OutlinedButton(
+            onClick = { showAddCardForm = !showAddCardForm },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Icon(if (showAddCardForm) Icons.Default.Close else Icons.Default.Add, null, tint = YellowPrimary)
+            Spacer(Modifier.width(8.dp))
+            Text(if (showAddCardForm) "Cancelar" else "Adicionar cartão", color = YellowPrimary)
+        }
+
+        if (showAddCardForm) {
+            Spacer(Modifier.height(16.dp))
+            AddCardForm(
+                onSave = { number, holder, expiry ->
+                    showAddCardForm = false
+                    vm.payCard(number, holder, expiry, detectBrand(number), save = true)
+                }
+            )
         }
 
         if (state.error != null) {
@@ -138,16 +156,6 @@ fun PaymentScreen(nav: NavController, productId: Long, source: String) {
             ) { Text("Já paguei") }
         }
         Spacer(Modifier.height(24.dp))
-    }
-
-    if (addCardOpen) {
-        AddCardDialog(
-            onCancel = { addCardOpen = false },
-            onConfirm = { number, holder, expiry, brand ->
-                addCardOpen = false
-                vm.payCard(number, holder, expiry, brand, save = true)
-            }
-        )
     }
 }
 
@@ -208,11 +216,18 @@ private fun EmptyCardCard() {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.fillMaxWidth().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Icon(Icons.Default.CreditCard, null, tint = YellowPrimary, modifier = Modifier.size(40.dp))
             Spacer(Modifier.height(8.dp))
             Text("Nenhum cartão salvo", style = MaterialTheme.typography.titleLarge)
-            Text("Toque em + Adicionar cartão", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Toque em + Adicionar cartão",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -243,29 +258,159 @@ private fun PixOptionRow(selected: Boolean, onSelect: () -> Unit) {
 }
 
 @Composable
-private fun AddCardDialog(onCancel: () -> Unit, onConfirm: (number: String, holder: String, expiry: String, brand: String) -> Unit) {
+private fun AddCardForm(onSave: (number: String, holder: String, expiry: String) -> Unit) {
     var number by remember { mutableStateOf("") }
     var holder by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onCancel,
-        title = { Text("Adicionar cartão") },
-        text = {
-            Column {
-                PrimaryTextField(number, { number = it }, "Número", keyboardType = KeyboardType.Number)
-                Spacer(Modifier.height(8.dp))
-                PrimaryTextField(holder, { holder = it }, "Nome impresso")
-                Spacer(Modifier.height(8.dp))
-                PrimaryTextField(expiry, { expiry = it }, "Validade MM/AA")
+    var cvv by remember { mutableStateOf("") }
+
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            CreditCardPreview(
+                number = number,
+                holder = holder.ifBlank { "NOME COMPLETO" },
+                expiry = expiry.ifBlank { "MM/AA" }
+            )
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = number,
+                onValueChange = { v -> number = v.filter { it.isDigit() }.take(16) },
+                label = { Text("Número do cartão") },
+                singleLine = true,
+                visualTransformation = CardNumberTransformation,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                colors = yellowFieldColors()
+            )
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = holder,
+                onValueChange = { holder = it.uppercase() },
+                label = { Text("Nome impresso no cartão") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = yellowFieldColors()
+            )
+            Spacer(Modifier.height(8.dp))
+            Row {
+                OutlinedTextField(
+                    value = expiry,
+                    onValueChange = { v -> expiry = formatExpiry(v) },
+                    label = { Text("Validade (MM/AA)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                    colors = yellowFieldColors()
+                )
+                Spacer(Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = cvv,
+                    onValueChange = { v -> cvv = v.filter { it.isDigit() }.take(4) },
+                    label = { Text("CVV") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.weight(1f),
+                    colors = yellowFieldColors()
+                )
             }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onConfirm(number, holder, expiry, detectBrand(number))
-            }) { Text("Salvar e pagar") }
-        },
-        dismissButton = { TextButton(onClick = onCancel) { Text("Cancelar") } }
-    )
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = { onSave(number, holder, expiry) },
+                colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary, contentColor = Black0),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp)
+            ) { Text("Salvar e pagar") }
+        }
+    }
+}
+
+@Composable
+private fun yellowFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = YellowPrimary,
+    focusedLabelColor = YellowPrimary,
+    cursorColor = YellowPrimary
+)
+
+private fun formatExpiry(input: String): String {
+    val d = input.filter { it.isDigit() }.take(4)
+    return when {
+        d.length <= 2 -> d
+        else -> d.substring(0, 2) + "/" + d.substring(2)
+    }
+}
+
+private val CardNumberTransformation = VisualTransformation { text ->
+    val digits = text.text.filter { it.isDigit() }.take(16)
+    val out = buildString {
+        for (i in digits.indices) {
+            if (i > 0 && i % 4 == 0) append(' ')
+            append(digits[i])
+        }
+    }
+    val transformedLen = out.length
+    val mapping = object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            val o = offset.coerceIn(0, digits.length)
+            if (o == 0) return 0
+            return (o + (o - 1) / 4).coerceAtMost(transformedLen)
+        }
+        override fun transformedToOriginal(offset: Int): Int {
+            val t = offset.coerceIn(0, transformedLen)
+            return (t - t / 5).coerceIn(0, digits.length)
+        }
+    }
+    TransformedText(AnnotatedString(out), mapping)
+}
+
+@Composable
+private fun CreditCardPreview(number: String, holder: String, expiry: String) {
+    val padded = number.padEnd(16, '•')
+    val formatted = buildString {
+        padded.take(16).forEachIndexed { i, c ->
+            if (i > 0 && i % 4 == 0) append("  ")
+            append(c)
+        }
+    }
+    val brand = detectBrand(number)
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1F1F1F)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(Color(0xFF2A2A2A), Color(0xFF111111))))
+                .padding(20.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(brand, color = YellowPrimary, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                    Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFFEB001B)))
+                    Spacer(Modifier.width(-12.dp))
+                    Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFFF79E1B).copy(alpha = 0.85f)))
+                }
+                Spacer(Modifier.height(20.dp))
+                Text(formatted, color = Color.White, style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(16.dp))
+                Row {
+                    Column(Modifier.weight(1f)) {
+                        Text("TITULAR", color = Color(0xFF999999), style = MaterialTheme.typography.labelSmall)
+                        Text(holder, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    Column {
+                        Text("VALIDADE", color = Color(0xFF999999), style = MaterialTheme.typography.labelSmall)
+                        Text(expiry, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun detectBrand(num: String): String {
@@ -274,6 +419,7 @@ private fun detectBrand(num: String): String {
         n.startsWith("4") -> "Visa"
         n.startsWith("5") -> "Mastercard"
         n.startsWith("3") -> "Amex"
+        n.startsWith("6") -> "Elo"
         else -> "Cartão"
     }
 }

@@ -57,7 +57,7 @@ fun LivePrinterDialog(orderId: Long, onDismiss: () -> Unit) {
             ) {
                 LiveBadge()
                 Spacer(Modifier.width(8.dp))
-                ViewerBadge(count = 142)
+                ViewerBadge(count = 1)
                 Spacer(Modifier.weight(1f))
                 IconButton(
                     onClick = onDismiss,

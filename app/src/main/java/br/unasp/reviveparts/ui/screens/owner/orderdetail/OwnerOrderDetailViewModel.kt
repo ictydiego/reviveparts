@@ -26,8 +26,8 @@ class OwnerOrderDetailViewModel(
             if (o != null) {
                 if (product.value == null) product.value = products.findById(o.productId)
                 if (customer.value == null) {
-                    customer.value = users.findById(o.userId) ?: UserEntity(
-                        id = o.userId,
+                    val embedded = UserEntity(
+                        id = 0,
                         name = o.customerName,
                         email = o.customerEmail,
                         password = "",
@@ -36,6 +36,19 @@ class OwnerOrderDetailViewModel(
                         role = br.unasp.reviveparts.domain.model.Role.CUSTOMER,
                         firebaseUid = o.userUid
                     )
+                    val needsCloud = embedded.name.isBlank() ||
+                        embedded.email.isBlank() ||
+                        embedded.phone.isBlank() ||
+                        embedded.address.isBlank()
+                    customer.value = if (needsCloud) {
+                        val cloud = users.findCloudByUid(o.userUid)
+                        if (cloud == null) embedded else embedded.copy(
+                            name = embedded.name.ifBlank { cloud.name },
+                            email = embedded.email.ifBlank { cloud.email },
+                            phone = embedded.phone.ifBlank { cloud.phone },
+                            address = embedded.address.ifBlank { cloud.address }
+                        )
+                    } else embedded
                 }
             }
         }

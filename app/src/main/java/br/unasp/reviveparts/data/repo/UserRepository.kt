@@ -72,6 +72,24 @@ class UserRepository(
     suspend fun findById(id: Long) = dao.findById(id)
     fun observeById(id: Long) = dao.observeById(id)
 
+    suspend fun findCloudByUid(uid: String): UserEntity? {
+        if (uid.isBlank()) return null
+        val doc = runCatching { usersCollection.document(uid).get().await() }.getOrNull() ?: return null
+        if (!doc.exists()) return null
+        val role = doc.getString("role")?.let { runCatching { Role.valueOf(it) }.getOrNull() } ?: Role.CUSTOMER
+        return UserEntity(
+            id = 0,
+            name = doc.getString("name").orEmpty(),
+            email = doc.getString("email").orEmpty(),
+            password = "",
+            phone = doc.getString("phone").orEmpty(),
+            cpf = doc.getString("cpf").orEmpty(),
+            address = doc.getString("address").orEmpty(),
+            role = role,
+            firebaseUid = uid
+        )
+    }
+
     suspend fun update(u: UserEntity) {
         dao.update(u)
         if (u.firebaseUid.isNotBlank()) {
