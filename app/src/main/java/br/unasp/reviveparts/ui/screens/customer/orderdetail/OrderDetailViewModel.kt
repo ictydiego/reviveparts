@@ -6,17 +6,54 @@ import br.unasp.reviveparts.RevivePartsApp
 import br.unasp.reviveparts.data.db.entities.OrderEntity
 import br.unasp.reviveparts.data.db.entities.ProductEntity
 import br.unasp.reviveparts.data.repo.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-class OrderDetailViewModel(private val orders: OrderRepository, private val products: ProductRepository, private val orderId: Long) : ViewModel() {
+class OrderDetailViewModel(
+    private val orders: OrderRepository,
+    private val products: ProductRepository,
+    private val orderId: Long,
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
+) : ViewModel() {
     val order = MutableStateFlow<OrderEntity?>(null)
     val product = MutableStateFlow<ProductEntity?>(null)
-    init { viewModelScope.launch {
-        orders.observeById(orderId).collect { o ->
-            order.value = o
-            if (o != null && product.value == null) product.value = products.findById(o.productId)
+
+    init {
+        viewModelScope.launch {
+            orders.observeById(orderId).collect { o ->
+                order.value = o
+                if (o != null && product.value == null) product.value = products.findById(o.productId)
+            }
         }
-    } }
-    companion object { fun create(app: RevivePartsApp, id: Long) = OrderDetailViewModel(app.orderRepo, app.productRepo, id) }
+    }
+
+    fun submitReview(rating: Int, onSuccess: () -> Unit, onError: () -> Unit) {
+        val o = order.value ?: return
+        val p = product.value
+        viewModelScope.launch {
+            runCatching {
+                firestore.collection("reviews").add(
+                    mapOf(
+                        "orderId" to o.id,
+                        "productId" to o.productId,
+                        "productName" to (p?.name ?: ""),
+                        "rating" to rating,
+                        "customerName" to o.customerName.ifBlank { auth.currentUser?.email ?: "Anônimo" },
+                        "userUid" to o.userUid,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                ).await()
+            }.onSuccess { onSuccess() }.onFailure { onError() }
+        }
+    }
+
+    companion object {
+        fun create(app: RevivePartsApp, id: Long) = OrderDetailViewModel(
+            app.orderRepo, app.productRepo, id, app.firestore, app.firebaseAuth
+        )
+    }
 }

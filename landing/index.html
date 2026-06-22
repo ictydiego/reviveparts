@@ -3,135 +3,352 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ReviveParts | Pecas automotivas em 3D</title>
-    <meta
-      name="description"
-      content="ReviveParts conecta motoristas a pecas automotivas raras, modelos 3D e acompanhamento de pedidos em tempo real."
-    />
+    <title>ReviveParts | Peças automotivas impressas em 3D</title>
+    <meta name="description" content="Encontre, visualize e compre peças raras para seu carro com modelos 3D, IA e acompanhamento em tempo real." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="site-header">
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <header class="site-header" id="top">
       <a class="brand" href="#top" aria-label="ReviveParts">
         <img src="assets/logo.png" alt="" />
         <span>ReviveParts</span>
       </a>
       <nav aria-label="Principal">
-        <a href="#catalogo">Catalogo</a>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#viewer">3D</a>
         <a href="#status">Status</a>
-        <a href="#hosting">Firebase</a>
+        <a href="#avaliacoes">Avaliações</a>
       </nav>
-      <a class="store-link" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
-        Play Store
+      <a class="store-link" href="https://github.com/ictydiego/reviveparts/releases/latest/download/reviveparts-debug.apk" download>
+        ⬇ Baixar APK
       </a>
     </header>
 
-    <main id="top">
+    <main>
+
+      <!-- ── HERO ───────────────────────────────────────────────── -->
       <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-media" aria-hidden="true">
-          <img class="part part-main" src="assets/manivela_vidro.png" alt="" />
-          <img class="part part-subaru" src="assets/tamparadiador.png" alt="" />
+        <div class="hero-bg" aria-hidden="true">
+          <img class="part part-main"   src="assets/manivela_vidro.png"  alt="" />
+          <img class="part part-sub"    src="assets/tamparadiador.png"   alt="" />
           <img class="part part-mirror" src="assets/retrovisor_fiat.png" alt="" />
+          <div class="hero-glow"></div>
         </div>
         <div class="hero-copy">
-          <p class="eyebrow">Catalogo 3D para reposicao automotiva</p>
-          <h1 id="hero-title">ReviveParts</h1>
-          <p>
-            Encontre, visualize e compre pecas raras com modelos 3D locais,
-            filtros por marca e pedidos acompanhados em tempo real.
-          </p>
+          <span class="badge">Catálogo 3D · Impressão sob demanda</span>
+          <h1 id="hero-title">Reviva seu<br/><em>clássico.</em></h1>
+          <p>Peças raras para veículos fora de linha — modeladas em 3D, impressas e entregues. Do Fusca ao WRX.</p>
           <div class="hero-actions">
-            <a class="primary-action" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
-              Baixar na Play Store
+            <a class="btn btn-primary" href="https://github.com/ictydiego/reviveparts/releases/latest/download/reviveparts-debug.apk" download>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Baixar para Android
             </a>
-            <a class="secondary-action" href="#catalogo">Ver recursos</a>
+            <a class="btn btn-ghost" href="#viewer">Ver peça em 3D</a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><strong>3D</strong><span>Modelos locais</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong>IA</strong><span>Busca por foto</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong>Live</strong><span>Status em tempo real</span></div>
           </div>
         </div>
       </section>
 
+      <!-- ── 3D VIEWER ──────────────────────────────────────────── -->
+      <section id="viewer" class="section viewer-band">
+        <div class="viewer-copy">
+          <span class="eyebrow">Visualizador 3D</span>
+          <h2>Examine cada detalhe antes de comprar.</h2>
+          <p>Gire, aproxime e inspecione o modelo digital da peça diretamente no app ou aqui na web. O que você vê é exatamente o que será impresso.</p>
+          <ul class="feature-list">
+            <li>
+              <span class="feature-icon">⟳</span>
+              <div><strong>Rotação livre</strong><p>360° em qualquer eixo</p></div>
+            </li>
+            <li>
+              <span class="feature-icon">⊕</span>
+              <div><strong>Zoom preciso</strong><p>Inspecione encaixes e travas</p></div>
+            </li>
+            <li>
+              <span class="feature-icon">▲</span>
+              <div><strong>Formato GLB/STL</strong><p>Modelos de alta fidelidade</p></div>
+            </li>
+          </ul>
+        </div>
+        <div class="viewer-wrapper">
+          <model-viewer
+            src="assets/models/manivela_vw.glb"
+            alt="Manivela de vidro VW em 3D"
+            camera-controls
+            auto-rotate
+            auto-rotate-delay="500"
+            rotation-per-second="20deg"
+            shadow-intensity="1"
+            environment-image="neutral"
+            exposure="0.9"
+            camera-orbit="45deg 75deg 2.5m"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            tone-mapping="commerce"
+            style="width:100%;height:480px;background:transparent;"
+          >
+            <div class="viewer-label" slot="poster">
+              <div class="spinner"></div>
+              <span>Carregando modelo 3D…</span>
+            </div>
+            <div class="viewer-badge">
+              <span>Manivela do vidro · VW Fusca</span>
+            </div>
+          </model-viewer>
+          <div class="viewer-hint">Arraste para girar · Pinça para zoom</div>
+        </div>
+      </section>
+
+      <!-- ── CATÁLOGO ───────────────────────────────────────────── -->
       <section id="catalogo" class="section product-band">
-        <div class="section-heading">
-          <p class="eyebrow">Busca por marca</p>
-          <h2>Do Subaru WRX ao Fiat antigo, o catalogo fica simples de navegar.</h2>
+        <div class="section-header">
+          <span class="eyebrow">Catálogo de peças</span>
+          <h2>Do Subaru WRX ao Fiat antigo,<br/>navegue por marca.</h2>
         </div>
         <div class="product-grid">
           <article class="product-card">
-            <img src="assets/tamparadiador.png" alt="Tampa de radiador Subaru WRX" />
-            <div>
-              <span>Subaru</span>
-              <h3>WRX washer cap</h3>
-              <p>Tampa do radiador pronta para impressao 3D.</p>
+            <div class="product-img-wrap">
+              <img src="assets/tamparadiador.png" alt="Tampa de radiador Subaru WRX" />
+              <span class="product-brand-tag">Subaru</span>
+            </div>
+            <div class="product-info">
+              <h3>WRX Washer Cap</h3>
+              <p>Tampa do radiador pronta para impressão 3D em ABS resistente ao calor.</p>
+              <span class="product-material">ABS · ~85g</span>
             </div>
           </article>
           <article class="product-card">
-            <img src="assets/retrovisor_fiat.png" alt="Retrovisor Fiat" />
-            <div>
-              <span>Fiat</span>
-              <h3>Mirror green</h3>
-              <p>Retrovisor esquerdo com modelo STL local.</p>
+            <div class="product-img-wrap">
+              <img src="assets/retrovisor_fiat.png" alt="Retrovisor Fiat" />
+              <span class="product-brand-tag">Fiat</span>
+            </div>
+            <div class="product-info">
+              <h3>Mirror Green Left</h3>
+              <p>Retrovisor esquerdo com encaixe original e modelo STL incluso no app.</p>
+              <span class="product-material">PETG · ~120g</span>
             </div>
           </article>
-          <article class="product-card">
-            <img src="assets/manivela_vidro.png" alt="Manivela de vidro Volkswagen" />
-            <div>
-              <span>Volkswagen</span>
-              <h3>Manivela do vidro</h3>
-              <p>Modelo 3D usado tambem no fluxo mockado de IA.</p>
+          <article class="product-card featured">
+            <div class="product-img-wrap">
+              <img src="assets/manivela_vidro.png" alt="Manivela de vidro Volkswagen" />
+              <span class="product-brand-tag">Volkswagen</span>
+              <span class="product-featured-tag">★ Destaque</span>
+            </div>
+            <div class="product-info">
+              <h3>Manivela do Vidro</h3>
+              <p>Peça usada no fluxo de IA — fotografe a peça quebrada e encontre o modelo certo.</p>
+              <span class="product-material">ABS · ~140g</span>
             </div>
           </article>
         </div>
       </section>
 
+      <!-- ── STATUS DO PEDIDO ───────────────────────────────────── -->
       <section id="status" class="section status-band">
-        <div class="phone-shell" aria-label="Previa da tela de pedidos">
-          <div class="phone-top"></div>
+        <div class="phone-shell" aria-label="Prévia da tela de pedidos">
+          <div class="phone-notch"></div>
           <div class="phone-screen">
-            <div class="screen-row">
-              <strong>Pedido BR-200021</strong>
+            <div class="screen-topbar">
+              <span class="screen-back">‹</span>
+              <span>Meus pedidos</span>
+              <span class="screen-bell">🔔</span>
+            </div>
+            <div class="screen-card-header">
+              <div class="screen-order-info">
+                <strong>Pedido BR-200021</strong>
+                <small>Manivela do vidro · VW</small>
+              </div>
               <span class="pill">Imprimindo</span>
             </div>
-            <div class="timeline">
-              <span class="done"></span>
-              <span class="active"></span>
-              <span></span>
-              <span></span>
+            <div class="timeline-steps">
+              <div class="step done">
+                <div class="step-dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="step-label"><strong>Pedido feito</strong><small>15 mai, 14:32</small></div>
+              </div>
+              <div class="step done">
+                <div class="step-dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="step-label"><strong>Em análise</strong><small>15 mai, 15:00</small></div>
+              </div>
+              <div class="step active">
+                <div class="step-dot pulse-dot"></div>
+                <div class="step-label"><strong>Imprimindo</strong><small>Em andamento…</small></div>
+              </div>
+              <div class="step">
+                <div class="step-dot empty"></div>
+                <div class="step-label"><strong>Enviado</strong><small>—</small></div>
+              </div>
+              <div class="step">
+                <div class="step-dot empty"></div>
+                <div class="step-label"><strong>Entregue</strong><small>—</small></div>
+              </div>
             </div>
-            <div class="screen-card">
-              <small>Atualizacao em tempo real</small>
-              <p>O sino da Home avisa quando o status muda.</p>
+            <div class="screen-live-badge">
+              <span class="live-dot"></span> LIVE · Câmera da impressora
             </div>
           </div>
         </div>
         <div class="status-copy">
-          <p class="eyebrow">Pedidos na nuvem</p>
+          <span class="eyebrow">Pedidos na nuvem</span>
           <h2>Status sincronizado para cliente e dono.</h2>
-          <p>
-            O fluxo continua igual: pagamento, pedido criado e acompanhamento.
-            A diferenca e que o status passa a mudar no Firestore e aparece
-            sem depender de dados locais.
-          </p>
-          <ul>
-            <li>Pedido feito</li>
-            <li>Em analise</li>
-            <li>Imprimindo</li>
-            <li>Enviado</li>
-          </ul>
+          <p>Cada etapa atualiza em tempo real via Firebase. O sino avisa quando o status muda — sem precisar reabrir o app.</p>
+          <div class="status-features">
+            <div class="sf-item">
+              <div class="sf-icon">🔥</div>
+              <div><strong>Firebase Firestore</strong><p>Sincronização em milissegundos entre cliente e vendedor.</p></div>
+            </div>
+            <div class="sf-item">
+              <div class="sf-icon">📹</div>
+              <div><strong>Camera LIVE</strong><p>Assista à impressão acontecer em tempo real.</p></div>
+            </div>
+            <div class="sf-item">
+              <div class="sf-icon">💳</div>
+              <div><strong>PIX &amp; Cartão</strong><p>Pague com PIX ou cartão de crédito direto no app.</p></div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="hosting" class="section hosting-band">
-        <div>
-          <p class="eyebrow">Pronto para Firebase Hosting</p>
-          <h2>Landing page leve, estatica e alinhada ao app.</h2>
-          <p>
-            Publicacao direta pelo Firebase Hosting, com assets locais e link
-            para a Play Store.
-          </p>
+      <!-- ── AVALIAÇÕES ─────────────────────────────────────────── -->
+      <section id="avaliacoes" class="section reviews-band">
+        <div class="section-header centered">
+          <span class="eyebrow">Avaliações de clientes</span>
+          <h2>O que nossos clientes dizem.</h2>
+          <p>Avaliações reais de compras verificadas, direto do app.</p>
         </div>
-        <a class="primary-action" href="https://play.google.com/store/apps/details?id=br.unasp.reviveparts">
-          Abrir Play Store
-        </a>
+        <div class="reviews-grid" id="reviews-container">
+          <!-- Reviews carregadas via Firebase JS SDK -->
+          <div class="reviews-loading">
+            <div class="spinner"></div>
+            <span>Carregando avaliações…</span>
+          </div>
+        </div>
+        <div class="reviews-empty hidden" id="reviews-empty">
+          <p>Seja o primeiro a avaliar! Baixe o app e faça seu pedido.</p>
+        </div>
       </section>
+
+      <!-- ── CTA FINAL ──────────────────────────────────────────── -->
+      <section class="cta-band">
+        <div class="cta-content">
+          <span class="eyebrow">Disponível agora</span>
+          <h2>Pronto para reviver<br/>seu clássico?</h2>
+          <p>Baixe o app, encontre a peça pelo catálogo ou pela câmera com IA, e acompanhe cada etapa da impressão.</p>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/ictydiego/reviveparts/releases/latest/download/reviveparts-debug.apk" download>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Baixar APK (Android)
+            </a>
+            <a class="btn btn-outline" href="https://github.com/ictydiego/reviveparts" target="_blank" rel="noopener">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              Ver no GitHub
+            </a>
+          </div>
+        </div>
+        <div class="cta-screens" aria-hidden="true">
+          <img class="cta-screen cta-screen-1" src="assets/1.jpeg" alt="" />
+          <img class="cta-screen cta-screen-2" src="assets/2.jpeg" alt="" />
+          <img class="cta-screen cta-screen-3" src="assets/3.jpeg" alt="" />
+        </div>
+      </section>
+
     </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="brand" href="#top">
+          <img src="assets/logo.png" alt="" />
+          <span>ReviveParts</span>
+        </a>
+        <p>Inventário digital de peças automotivas — impressas em 3D, sob demanda.</p>
+        <div class="footer-links">
+          <a href="https://github.com/ictydiego/reviveparts" target="_blank" rel="noopener">GitHub</a>
+          <span>·</span>
+          <a href="https://github.com/ictydiego/reviveparts/releases" target="_blank" rel="noopener">Releases</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Firebase JS SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCQMWRQCTdVIt4Lg15nubzXsadQGzHPSoU",
+        authDomain: "smarthidro-f6190.firebaseapp.com",
+        projectId: "smarthidro-f6190",
+        storageBucket: "smarthidro-f6190.firebasestorage.app",
+        messagingSenderId: "173971447840",
+        appId: "1:173971447840:android:6d985347b0f11b5fc41c45"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      async function loadReviews() {
+        const container = document.getElementById("reviews-container");
+        const empty = document.getElementById("reviews-empty");
+
+        try {
+          const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(6));
+          const snap = await getDocs(q);
+
+          container.innerHTML = "";
+
+          if (snap.empty) {
+            container.classList.add("hidden");
+            empty.classList.remove("hidden");
+            return;
+          }
+
+          snap.forEach(doc => {
+            const d = doc.data();
+            const stars = Math.min(5, Math.max(1, d.rating || 5));
+            const name = d.customerName || "Cliente verificado";
+            const product = d.productName || "Peça ReviveParts";
+            const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "";
+
+            const card = document.createElement("article");
+            card.className = "review-card";
+            card.innerHTML = `
+              <div class="review-stars">${"★".repeat(stars)}${"☆".repeat(5 - stars)}</div>
+              <p class="review-product">${escapeHtml(product)}</p>
+              <div class="review-author">
+                <div class="review-avatar">${escapeHtml(name.charAt(0).toUpperCase())}</div>
+                <div>
+                  <strong>${escapeHtml(name)}</strong>
+                  ${date ? `<small>${date}</small>` : ""}
+                </div>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        } catch (e) {
+          container.innerHTML = "";
+          empty.classList.remove("hidden");
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, m => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[m]));
+      }
+
+      loadReviews();
+    </script>
+
   </body>
 </html>

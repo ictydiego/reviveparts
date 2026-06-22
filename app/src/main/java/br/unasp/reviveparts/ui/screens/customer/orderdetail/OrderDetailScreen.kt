@@ -37,13 +37,10 @@ import br.unasp.reviveparts.ui.screens.customer.formatOrderId
 import br.unasp.reviveparts.ui.screens.customer.productImage
 import br.unasp.reviveparts.ui.theme.Black0
 import br.unasp.reviveparts.ui.theme.YellowPrimary
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
 fun OrderDetailScreen(nav: NavController, id: Long) {
     val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
     val vm: OrderDetailViewModel = viewModel(key = "od-$id", factory = object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : androidx.lifecycle.ViewModel> create(c: Class<T>): T = OrderDetailViewModel.create(ctx.app, id) as T
@@ -154,12 +151,18 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
                     Button(
                         onClick = {
                             isSubmitting = true
-                            scope.launch {
-                                delay(1500)
-                                isSubmitting = false
-                                Toast.makeText(ctx, "Avaliação enviada com sucesso!", Toast.LENGTH_SHORT).show()
-                                nav.popBackStack()
-                            }
+                            vm.submitReview(
+                                rating = rating,
+                                onSuccess = {
+                                    isSubmitting = false
+                                    Toast.makeText(ctx, "Avaliação enviada! Obrigado 🎉", Toast.LENGTH_SHORT).show()
+                                    nav.popBackStack()
+                                },
+                                onError = {
+                                    isSubmitting = false
+                                    Toast.makeText(ctx, "Erro ao enviar avaliação. Tente novamente.", Toast.LENGTH_SHORT).show()
+                                }
+                            )
                         },
                         enabled = rating > 0 && !isSubmitting,
                         colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary, contentColor = Black0),
