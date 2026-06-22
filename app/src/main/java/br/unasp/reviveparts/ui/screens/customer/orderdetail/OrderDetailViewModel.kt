@@ -7,6 +7,7 @@ import br.unasp.reviveparts.data.db.entities.OrderEntity
 import br.unasp.reviveparts.data.db.entities.ProductEntity
 import br.unasp.reviveparts.data.repo.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -31,7 +32,7 @@ class OrderDetailViewModel(
         }
     }
 
-    fun submitReview(rating: Int, onSuccess: () -> Unit, onError: () -> Unit) {
+    fun submitReview(rating: Int, comment: String, onSuccess: () -> Unit, onError: () -> Unit) {
         val o = order.value ?: return
         val p = product.value
         viewModelScope.launch {
@@ -42,9 +43,10 @@ class OrderDetailViewModel(
                         "productId" to o.productId,
                         "productName" to (p?.name ?: ""),
                         "rating" to rating,
+                        "comment" to comment.trim(),
                         "customerName" to o.customerName.ifBlank { auth.currentUser?.email ?: "Anônimo" },
                         "userUid" to o.userUid,
-                        "createdAt" to System.currentTimeMillis()
+                        "createdAt" to FieldValue.serverTimestamp()
                     )
                 ).await()
             }.onSuccess { onSuccess() }.onFailure { onError() }

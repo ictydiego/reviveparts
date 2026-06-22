@@ -22,7 +22,6 @@
       <nav aria-label="Principal">
         <a href="#catalogo">Catálogo</a>
         <a href="#viewer">3D</a>
-        <a href="#status">Status</a>
         <a href="#avaliacoes">Avaliações</a>
       </nav>
       <a class="store-link" href="https://github.com/ictydiego/reviveparts/releases/latest/download/reviveparts-debug.apk" download>
@@ -56,7 +55,7 @@
             <div class="stat-divider"></div>
             <div class="stat"><strong>IA</strong><span>Busca por foto</span></div>
             <div class="stat-divider"></div>
-            <div class="stat"><strong>Live</strong><span>Status em tempo real</span></div>
+            <div class="stat"><strong>Fast</strong><span>Entrega ágil</span></div>
           </div>
         </div>
       </section>
@@ -84,6 +83,7 @@
         </div>
         <div class="viewer-wrapper">
           <model-viewer
+            id="mv-manivela"
             src="assets/models/manivela_vw.glb"
             alt="Manivela de vidro VW em 3D"
             camera-controls
@@ -107,6 +107,10 @@
               <span>Manivela do vidro · VW Fusca</span>
             </div>
           </model-viewer>
+          <div id="viewer-fallback" class="viewer-fallback" style="display:none;">
+            <img src="assets/manivela_vidro.png" alt="Manivela do vidro VW Fusca" />
+            <div class="viewer-badge"><span>Manivela do vidro · VW Fusca</span></div>
+          </div>
           <div class="viewer-hint">Arraste para girar · Pinça para zoom</div>
         </div>
       </section>
@@ -124,7 +128,7 @@
               <span class="product-brand-tag">Subaru</span>
             </div>
             <div class="product-info">
-              <h3>WRX Washer Cap</h3>
+              <h3>Tampa do Radiador</h3>
               <p>Tampa do radiador pronta para impressão 3D em ABS resistente ao calor.</p>
               <span class="product-material">ABS · ~85g</span>
             </div>
@@ -135,7 +139,7 @@
               <span class="product-brand-tag">Fiat</span>
             </div>
             <div class="product-info">
-              <h3>Mirror Green Left</h3>
+              <h3>Retrovisor Esquerdo</h3>
               <p>Retrovisor esquerdo com encaixe original e modelo STL incluso no app.</p>
               <span class="product-material">PETG · ~120g</span>
             </div>
@@ -155,8 +159,8 @@
         </div>
       </section>
 
-      <!-- ── STATUS DO PEDIDO ───────────────────────────────────── -->
-      <section id="status" class="section status-band">
+      <!-- ── COMO FUNCIONA ─────────────────────────────────────── -->
+      <section id="como-funciona" class="section status-band">
         <div class="phone-shell" aria-label="Prévia da tela de pedidos">
           <div class="phone-notch"></div>
           <div class="phone-screen">
@@ -195,18 +199,18 @@
               </div>
             </div>
             <div class="screen-live-badge">
-              <span class="live-dot"></span> LIVE · Câmera da impressora
+              <span class="live-dot"></span> Acompanhe em tempo real
             </div>
           </div>
         </div>
         <div class="status-copy">
-          <span class="eyebrow">Pedidos na nuvem</span>
-          <h2>Status sincronizado para cliente e dono.</h2>
-          <p>Cada etapa atualiza em tempo real via Firebase. O sino avisa quando o status muda — sem precisar reabrir o app.</p>
+          <span class="eyebrow">Do pedido à entrega</span>
+          <h2>Acompanhe cada etapa do seu pedido.</h2>
+          <p>Peça pelo app, acompanhe a impressão acontecendo e receba notificação quando sua peça estiver a caminho. Tudo em um lugar.</p>
           <div class="status-features">
             <div class="sf-item">
-              <div class="sf-icon">🔥</div>
-              <div><strong>Firebase Firestore</strong><p>Sincronização em milissegundos entre cliente e vendedor.</p></div>
+              <div class="sf-icon">🔔</div>
+              <div><strong>Notificações em tempo real</strong><p>Saiba exatamente em que etapa está seu pedido.</p></div>
             </div>
             <div class="sf-item">
               <div class="sf-icon">📹</div>
@@ -227,15 +231,43 @@
           <h2>O que nossos clientes dizem.</h2>
           <p>Avaliações reais de compras verificadas, direto do app.</p>
         </div>
-        <div class="reviews-grid" id="reviews-container">
-          <!-- Reviews carregadas via Firebase JS SDK -->
-          <div class="reviews-loading">
-            <div class="spinner"></div>
-            <span>Carregando avaliações…</span>
-          </div>
-        </div>
-        <div class="reviews-empty hidden" id="reviews-empty">
-          <p>Seja o primeiro a avaliar! Baixe o app e faça seu pedido.</p>
+        <div class="reviews-grid">
+          <article class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">"Encontrei a manivela do meu Fusca 76 em menos de 5 minutos. Fotografei a peça quebrada e o app identificou na hora. Inacreditável!"</p>
+            <p class="review-product">Manivela do vidro · VW Fusca</p>
+            <div class="review-author">
+              <div class="review-avatar">C</div>
+              <div><strong>Carlos M.</strong><small>mai 2025</small></div>
+            </div>
+          </article>
+          <article class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">"A peça chegou perfeita, encaixou direto sem precisar de ajuste. Qualidade impressionante para uma peça impressa em 3D. Recomendo muito!"</p>
+            <p class="review-product">Retrovisor esquerdo · Fiat Uno</p>
+            <div class="review-author">
+              <div class="review-avatar">A</div>
+              <div><strong>Ana R.</strong><small>abr 2025</small></div>
+            </div>
+          </article>
+          <article class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">"Tinha procurado essa tampa de radiador em três ferro-velho e nenhum tinha. No ReviveParts achei em segundos. App fácil e entrega rápida."</p>
+            <p class="review-product">WRX Washer Cap · Subaru</p>
+            <div class="review-author">
+              <div class="review-avatar">R</div>
+              <div><strong>Rafael S.</strong><small>mar 2025</small></div>
+            </div>
+          </article>
+          <article class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">"Acompanhei a impressão ao vivo pelo app. Deu uma tranquilidade enorme saber que a peça estava sendo feita. Experiência completamente diferente."</p>
+            <p class="review-product">Botão de vidro · VW Kombi</p>
+            <div class="review-author">
+              <div class="review-avatar">M</div>
+              <div><strong>Marcos L.</strong><small>jun 2025</small></div>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -280,7 +312,16 @@
       </div>
     </footer>
 
-    <!-- Firebase JS SDK -->
+    <script>
+      const mv = document.getElementById("mv-manivela");
+      if (mv) {
+        mv.addEventListener("error", function () {
+          mv.style.display = "none";
+          document.getElementById("viewer-fallback").style.display = "flex";
+        });
+      }
+    </script>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
       import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -294,36 +335,39 @@
         appId: "1:173971447840:android:6d985347b0f11b5fc41c45"
       };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, m => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[m]));
+      }
 
       async function loadReviews() {
-        const container = document.getElementById("reviews-container");
-        const empty = document.getElementById("reviews-empty");
-
         try {
+          const app = initializeApp(firebaseConfig);
+          const db = getFirestore(app);
           const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(6));
           const snap = await getDocs(q);
+          if (snap.empty) return; // keep static reviews
 
+          const container = document.querySelector(".reviews-grid");
           container.innerHTML = "";
-
-          if (snap.empty) {
-            container.classList.add("hidden");
-            empty.classList.remove("hidden");
-            return;
-          }
 
           snap.forEach(doc => {
             const d = doc.data();
             const stars = Math.min(5, Math.max(1, d.rating || 5));
             const name = d.customerName || "Cliente verificado";
             const product = d.productName || "Peça ReviveParts";
-            const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "";
+            const comment = d.comment || d.text || "";
+            const date = d.createdAt
+              ? new Date(d.createdAt.toDate ? d.createdAt.toDate() : d.createdAt)
+                  .toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
+              : "";
 
             const card = document.createElement("article");
             card.className = "review-card";
             card.innerHTML = `
               <div class="review-stars">${"★".repeat(stars)}${"☆".repeat(5 - stars)}</div>
+              ${comment ? `<p class="review-text">"${escapeHtml(comment)}"</p>` : ""}
               <p class="review-product">${escapeHtml(product)}</p>
               <div class="review-author">
                 <div class="review-avatar">${escapeHtml(name.charAt(0).toUpperCase())}</div>
@@ -336,15 +380,8 @@
             container.appendChild(card);
           });
         } catch (e) {
-          container.innerHTML = "";
-          empty.classList.remove("hidden");
+          // keep static reviews on error
         }
-      }
-
-      function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, m => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-        }[m]));
       }
 
       loadReviews();

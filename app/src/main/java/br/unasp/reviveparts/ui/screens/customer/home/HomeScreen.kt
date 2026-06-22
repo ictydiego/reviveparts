@@ -48,26 +48,17 @@ fun HomeScreen(nav: NavController) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var search by remember { mutableStateOf("") }
-    var selectedBrand by remember { mutableStateOf<String?>(null) }
     var filterOpen by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<ProductEntity?>(null) }
     val productSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val brands = remember(products) {
-        products.map { it.carBrand.trim() }
-            .filter { it.isNotBlank() }
-            .distinct()
-            .sorted()
-    }
-    val filtered = remember(products, search, selectedBrand) {
+    val filtered = remember(products, search) {
         products.filter { p ->
-            val matchesSearch = search.isBlank() ||
+            search.isBlank() ||
                 p.name.contains(search, ignoreCase = true) ||
                 p.description.contains(search, ignoreCase = true) ||
                 p.carBrand.contains(search, ignoreCase = true)
-            val matchesBrand = selectedBrand == null || p.carBrand.equals(selectedBrand, ignoreCase = true)
-            matchesSearch && matchesBrand
         }
     }
     val topSellers = filtered.take(6)
@@ -109,7 +100,7 @@ fun HomeScreen(nav: NavController) {
                 value = search,
                 onValueChange = { search = it },
                 onFilter = { filterOpen = true },
-                hasActiveFilter = selectedBrand != null
+                hasActiveFilter = false
             )
             Spacer(Modifier.height(20.dp))
             SectionHeader("Mais vendidos")
@@ -166,10 +157,7 @@ fun HomeScreen(nav: NavController) {
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 FilterSheetContent(
-                    brands = brands,
-                    selectedBrand = selectedBrand,
-                    onSelect = {
-                        selectedBrand = it
+                    onDismiss = {
                         scope.launch { filterSheetState.hide() }.invokeOnCompletion { filterOpen = false }
                     }
                 )
@@ -254,51 +242,68 @@ private fun SectionHeader(text: String) {
     Text(text, style = MaterialTheme.typography.titleLarge)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FilterSheetContent(
-    brands: List<String>,
-    selectedBrand: String?,
-    onSelect: (String?) -> Unit
-) {
-    Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp)) {
-        Text("Filtros", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "Marca do carro",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(16.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = selectedBrand == null,
-                onClick = { onSelect(null) },
-                label = { Text("Todas") },
-                leadingIcon = if (selectedBrand == null) {
-                    { Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp)) }
-                } else null
-            )
-            brands.forEach { brand ->
+private fun FilterSheetContent(onDismiss: () -> Unit) {
+    val mockBrands = listOf("Volkswagen", "Fiat", "Chevrolet", "Ford", "Toyota", "Honda", "Subaru", "Renault", "Hyundai", "Jeep")
+    val mockModels = listOf("Fusca", "Gol", "Palio", "Uno", "Celta", "Corsa", "Ka", "Escort", "Corolla", "Civic", "WRX", "Sandero", "HB20", "Renegade", "Kombi")
+
+    var selectedBrand by remember { mutableStateOf<String?>(null) }
+    var selectedModel by remember { mutableStateOf<String?>(null) }
+
+    Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Filtros", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = { selectedBrand = null; selectedModel = null }) {
+                Text("Limpar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text("Marca", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(mockBrands) { brand ->
                 FilterChip(
                     selected = selectedBrand == brand,
-                    onClick = { onSelect(brand) },
+                    onClick = { selectedBrand = if (selectedBrand == brand) null else brand },
                     label = { Text(brand) },
                     leadingIcon = if (selectedBrand == brand) {
-                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp)) }
-                    } else null
+                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = YellowPrimary,
+                        selectedLabelColor = Black0,
+                        selectedLeadingIconColor = Black0
+                    )
                 )
             }
         }
-        if (brands.isEmpty()) {
-            Text(
-                "Nenhuma marca cadastrada ainda.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
+        Spacer(Modifier.height(16.dp))
+        Text("Modelo", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(mockModels) { model ->
+                FilterChip(
+                    selected = selectedModel == model,
+                    onClick = { selectedModel = if (selectedModel == model) null else model },
+                    label = { Text(model) },
+                    leadingIcon = if (selectedModel == model) {
+                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = YellowPrimary,
+                        selectedLabelColor = Black0,
+                        selectedLeadingIconColor = Black0
+                    )
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = onDismiss,
+            colors = ButtonDefaults.buttonColors(containerColor = YellowPrimary, contentColor = Black0),
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+        ) {
+            Text("Ver resultados")
         }
     }
 }

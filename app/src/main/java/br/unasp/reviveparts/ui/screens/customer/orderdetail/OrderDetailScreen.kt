@@ -10,6 +10,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,8 +53,18 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
     val product = p
     val display = order.status.display()
     var rating by remember { mutableIntStateOf(0) }
+    var comment by remember { mutableStateOf("") }
     var liveOpen by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
+
+    val presetPhrases = listOf(
+        "Encaixou perfeitamente!",
+        "Ótima qualidade",
+        "Entrega rápida",
+        "Material resistente",
+        "Igual ao original",
+        "Recomendo muito"
+    )
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -147,12 +159,40 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
                             }
                         }
                     }
+                    Spacer(Modifier.height(12.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(presetPhrases) { phrase ->
+                            val selected = comment == phrase
+                            FilterChip(
+                                selected = selected,
+                                onClick = { comment = if (selected) "" else phrase },
+                                label = { Text(phrase, style = MaterialTheme.typography.labelMedium) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = YellowPrimary,
+                                    selectedLabelColor = Black0
+                                )
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = comment,
+                        onValueChange = { comment = it },
+                        placeholder = { Text("Escreva um comentário (opcional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3,
+                        enabled = !isSubmitting
+                    )
+                    Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
                             isSubmitting = true
                             vm.submitReview(
                                 rating = rating,
+                                comment = comment,
                                 onSuccess = {
                                     isSubmitting = false
                                     Toast.makeText(ctx, "Avaliação enviada! Obrigado 🎉", Toast.LENGTH_SHORT).show()
@@ -171,7 +211,7 @@ fun OrderDetailScreen(nav: NavController, id: Long) {
                         if (isSubmitting) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Black0, strokeWidth = 2.dp)
                         } else {
-                            Text("Enviar a avaliação")
+                            Text("Enviar avaliação")
                         }
                     }
                 }

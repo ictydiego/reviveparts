@@ -554,12 +554,41 @@ model-viewer {
   color: var(--yellow);
 }
 
+.review-text {
+  font-size: .93rem;
+  color: var(--text);
+  line-height: 1.6;
+  flex: 1;
+}
+
 .review-product {
   font-size: .8rem;
   font-weight: 700;
   color: var(--muted-soft);
   text-transform: uppercase;
   letter-spacing: .08em;
+}
+
+/* Viewer fallback image */
+.viewer-fallback {
+  width: 100%;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+}
+.viewer-fallback img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 40px rgba(255,214,10,.15));
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
 
 .review-author {
